@@ -16,6 +16,8 @@ jobs:
     steps:
     - name: Checkout Main Repository
       uses: actions/checkout@v2
+      with:
+        repository: 'DbSyncKit/DbSyncKit'  
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
