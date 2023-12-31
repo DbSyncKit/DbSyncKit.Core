@@ -18,7 +18,7 @@ jobs:
       uses: actions/checkout@v2
       with:
         repository: 'DbSyncKit/DbSyncKit'  
-        recursive: true
+        submodules: true
 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
