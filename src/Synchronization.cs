@@ -227,7 +227,7 @@ namespace DbSyncKit.Core
 
         #endregion
 
-            #region Private Methods
+        #region Private Methods
 
         private static void SwapDatabasesIfNeeded(ref IDatabase source, ref IDatabase destination, Direction direction)
         {
