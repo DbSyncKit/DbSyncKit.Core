@@ -142,7 +142,7 @@ namespace DbSyncKit.Core
         /// <param name="destinationList">The HashSet containing data from the destination.</param>
         /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for key comparison.</param>
         /// <returns>A <see cref="Result{T}"/> containing the differences between the source and destination data.</returns>
-        private Result<T> GetDifferences<T>(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyEqualityComparer) where T : IDataContractComparer
+        public Result<T> GetDifferences<T>(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyEqualityComparer) where T : IDataContractComparer
         {
             return DataMetadataComparisonHelper<T>.GetDifferences(sourceList, destinationList, keyEqualityComparer);
         }
