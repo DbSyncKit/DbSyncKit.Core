@@ -16,6 +16,11 @@ jobs:
         repository: 'DbSyncKit/DbSyncKit'  
         submodules: true
 
+    - name: Pull & update submodules recursively
+        run: |
+          git submodule update --init --recursive
+          git submodule update --recursive --remote
+ 
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v2
       with:
