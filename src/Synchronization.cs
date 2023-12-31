@@ -21,7 +21,7 @@ namespace DbSyncKit.Core
         /// <summary>
         /// Gets or sets the IQueryGenerator instance for the destination database.
         /// </summary>
-        public IQueryGenerator destinationQueryGenerationManager { get; private set; }
+        public IQueryGenerator? destinationQueryGenerationManager { get; private set; }
 
         #endregion
 
@@ -57,38 +57,45 @@ namespace DbSyncKit.Core
         /// <returns>A result object containing the differences between source and destination data.</returns>
         public Result<T> SyncData<T>(IDatabase source, IDatabase destination, Direction direction = Direction.SourceToDestination) where T : IDataContractComparer
         {
+            #region Properties
             string tableName = GetTableName<T>();
 
             if (string.IsNullOrEmpty(tableName))
                 throw new ArgumentNullException(tableName, "Table Name Cannot be null");
-            List<string> excludedProperty = GetExcludedProperties<T>();
 
-            List<string> sourceColList = GetAllColumns<T>().Except(excludedProperty).ToList();
-            List<string> destinationColList = GetAllColumns<T>().Except(excludedProperty).ToList();
+            List<string> excludedProperty = GetExcludedColumns<T>();
+            List<string> ColumnList = GetAllColumns<T>().Except(excludedProperty).ToList();
             PropertyInfo[] ComparableProperties = GetComparableProperties<T>();
-
+            PropertyInfo[] keyProperties = GetKeyProperties<T>();
+            KeyEqualityComparer<T> keyEqualityComparer = new KeyEqualityComparer<T>(ComparableProperties, keyProperties);
             HashSet<T> sourceList, destinationList;
 
-            switch (direction)
-            {
-                case Direction.SourceToDestination:
-                    break;
+            #endregion
 
-                case Direction.DestinationToSource:
-                    IDatabase temp;
-                    temp = source;
-                    source = destination;
-                    destination = temp;
-                    break;
+            SwapDatabasesIfNeeded(ref source, ref destination, direction);
 
-                case Direction.BiDirectional:
-                    throw new NotImplementedException();
-                default:
-                    break;
-            }
+            RetrieveDataFromDatabases(source, destination, tableName, ColumnList, keyEqualityComparer, out sourceList, out destinationList);
 
+            return GetDifferences(sourceList, destinationList, keyEqualityComparer);
+        }
+
+        /// <summary>
+        /// Retrieves data from two databases, <paramref name="source"/> and <paramref name="destination"/>,
+        /// for objects of type <typeparamref name="T"/> based on the specified <paramref name="tableName"/> and column list.
+        /// The retrieved data is stored in the output parameters <paramref name="sourceList"/> and <paramref name="destinationList"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to retrieve from the databases. Must implement <see cref="IDataContractComparer"/>.</typeparam>
+        /// <param name="source">The source database from which to retrieve data.</param>
+        /// <param name="destination">The destination database from which to retrieve data.</param>
+        /// <param name="tableName">The name of the table for which to retrieve data.</param>
+        /// <param name="ColumnList">The list of columns to retrieve from the table.</param>
+        /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for data comparison.</param>
+        /// <param name="sourceList">Output parameter for the retrieved data from the source database.</param>
+        /// <param name="destinationList">Output parameter for the retrieved data from the destination database.</param>
+        public void RetrieveDataFromDatabases<T>(IDatabase source, IDatabase destination, string tableName, List<string> ColumnList, KeyEqualityComparer<T> keyEqualityComparer, out HashSet<T> sourceList, out HashSet<T> destinationList) where T : IDataContractComparer
+        {
             var sourceQueryGenerationManager = new QueryGenerationManager(QueryGeneratorFactory.GetQueryGenerator(source.Provider));
-                sourceList = GetDataFromDatabase<T>(tableName, source, sourceQueryGenerationManager, sourceColList, ComparableProperties);
+            sourceList = GetDataFromDatabase<T>(tableName, source, sourceQueryGenerationManager, ColumnList, keyEqualityComparer);
 
             if (source.Provider != destination.Provider)
             {
@@ -100,10 +107,47 @@ namespace DbSyncKit.Core
                 destinationQueryGenerationManager = sourceQueryGenerationManager;
             }
 
-            destinationList = GetDataFromDatabase<T>(tableName, destination, destinationQueryGenerationManager, destinationColList, ComparableProperties);
-
-            return DataMetadataComparisonHelper<T>.GetDifferences(sourceList, destinationList, GetKeyColumns<T>(), ComparableProperties, direction);
+            destinationList = GetDataFromDatabase<T>(tableName, destination, destinationQueryGenerationManager, ColumnList, keyEqualityComparer);
         }
+
+        /// <summary>
+        /// Retrieves data of type <typeparamref name="T"/> from the specified <paramref name="connection"/> using the provided <paramref name="manager"/>.
+        /// The data is retrieved from the table specified by <paramref name="tableName"/> and the list of columns in <paramref name="columns"/>.
+        /// The <paramref name="keyEqualityComparer"/> is used for data comparison, and the retrieved data is returned as a <see cref="HashSet{T}"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of objects to retrieve. Must implement <see cref="IDataContractComparer"/>.</typeparam>
+        /// <param name="tableName">The name of the table for which to retrieve data.</param>
+        /// <param name="connection">The database connection from which to retrieve data.</param>
+        /// <param name="manager">The query generation manager to use for generating the select query.</param>
+        /// <param name="columns">The list of columns to retrieve from the table.</param>
+        /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for data comparison.</param>
+        /// <returns>A <see cref="HashSet{T}"/> containing the retrieved data.</returns>
+        public HashSet<T> GetDataFromDatabase<T>(string tableName, IDatabase connection, IQueryGenerator manager, List<string> columns, KeyEqualityComparer<T> keyEqualityComparer) where T : IDataContractComparer
+        {
+            var query = manager.GenerateSelectQuery<T>(tableName, columns, string.Empty);
+
+            using (var DBManager = new DatabaseManager<IDatabase>(connection))
+            {
+                return DBManager.ExecuteQuery<T>(query, tableName).ToHashSet(keyEqualityComparer);
+            }
+        }
+
+        /// <summary>
+        /// Compares the data in the <paramref name="sourceList"/> and <paramref name="destinationList"/> HashSet instances
+        /// using the specified <paramref name="keyEqualityComparer"/> to determine key equality.
+        /// Returns a <see cref="Result{T}"/> containing the differences between the two sets of data.
+        /// </summary>
+        /// <typeparam name="T">The type of objects being compared. Must implement <see cref="IDataContractComparer"/>.</typeparam>
+        /// <param name="sourceList">The HashSet containing data from the source.</param>
+        /// <param name="destinationList">The HashSet containing data from the destination.</param>
+        /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for key comparison.</param>
+        /// <returns>A <see cref="Result{T}"/> containing the differences between the source and destination data.</returns>
+        private Result<T> GetDifferences<T>(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyEqualityComparer) where T : IDataContractComparer
+        {
+            return DataMetadataComparisonHelper<T>.GetDifferences(sourceList, destinationList, keyEqualityComparer);
+        }
+
+
 
         /// <summary>
         /// Generates SQL queries for synchronizing data based on the differences identified.
@@ -114,74 +158,92 @@ namespace DbSyncKit.Core
         /// <returns>A string representing the generated SQL queries for synchronization.</returns>
         /// <exception cref="InvalidOperationException">
         /// Thrown when the IQueryGenerator instance is missing.
-        /// Make sure to set it either by providing it through the constructor or by calling
-        /// the SyncData method before calling this method.
         /// </exception>
         public string GetSqlQueryForSyncData<T>(Result<T> result,int BatchSize = 20) where T : IDataContractComparer
         {
             if (destinationQueryGenerationManager == null)
             {
-                throw new InvalidOperationException(
-                    $"The IQueryGenerator instance is missing. " +
-                    $"Make sure to set it either by providing it through the constructor or by calling the SyncData method before calling this method.");
+                throw new InvalidOperationException("The IQueryGenerator instance is missing.");
             }
 
             string batchStatement = destinationQueryGenerationManager.GenerateBatchSeparator();
-            var inserts = new StringBuilder();
-            for (int i = 0; i < result.Added.Count; i++)
-            {
-                inserts.AppendLine(destinationQueryGenerationManager.GenerateInsertQuery(result.Added[i], GetKeyColumns<T>(), GetExcludedProperties<T>()));
-                if (i != 0 && i % BatchSize == 0)
-                    inserts.AppendLine(batchStatement);
-            }
-
-
-            var delete = new StringBuilder();
-            for (int i = 0; i < result.Deleted.Count; i++)
-            {
-                delete.AppendLine(destinationQueryGenerationManager.GenerateDeleteQuery(result.Deleted[i], GetKeyColumns<T>()));
-                if (i != 0 && i % BatchSize == 0)
-                    delete.AppendLine(batchStatement);
-
-            }
-
-            var edits = new StringBuilder();
-
-            for (int i = 0; i < result.Edited.Count; i++)
-            {
-                edits.AppendLine(destinationQueryGenerationManager.GenerateUpdateQuery<T>(result.Edited[i].Item1, GetKeyColumns<T>(), GetExcludedProperties<T>(), result.Edited[i].Item2));
-                if (i != 0 && i % BatchSize == 0)
-                    edits.AppendLine(batchStatement);
-            }
-
             var query = new StringBuilder();
-
             var TableName = GetTableName<T>();
+            var keyColumns = GetKeyColumns<T>();
+            var excludedColumns = GetExcludedColumns<T>();
 
             query.AppendLine(destinationQueryGenerationManager.GenerateComment("==============" + TableName + "=============="));
             query.AppendLine(destinationQueryGenerationManager.GenerateComment("==============Insert==============="));
-            query.AppendLine(inserts.ToString());
-            if(result.Added.Count > 0 && result.Added.Count % BatchSize != 0) query.AppendLine(batchStatement);
+
+            for (int i = 0; i < result.Added.Count; i++)
+            {
+                query.AppendLine(destinationQueryGenerationManager.GenerateInsertQuery(result.Added[i], keyColumns, excludedColumns));
+                if (i != 0 && i % BatchSize == 0)
+                    query.AppendLine(batchStatement);
+            }
+            if (result.Added.Count > 0 && result.Added.Count % BatchSize != 0) query.AppendLine(batchStatement);
             query.AppendLine(destinationQueryGenerationManager.GenerateComment("==============Delete==============="));
-            query.AppendLine(delete.ToString());
+
+
+            for (int i = 0; i < result.Deleted.Count; i++)
+            {
+                query.AppendLine(destinationQueryGenerationManager.GenerateDeleteQuery(result.Deleted[i], keyColumns));
+                if (i != 0 && i % BatchSize == 0)
+                    query.AppendLine(batchStatement);
+
+            }
+
             if (result.Deleted.Count > 0 && result.Deleted.Count % BatchSize != 0) query.AppendLine(batchStatement);
             query.AppendLine(destinationQueryGenerationManager.GenerateComment("==============Update==============="));
-            query.AppendLine(edits.ToString());
+
+            for (int i = 0; i < result.Edited.Count; i++)
+            {
+                query.AppendLine(destinationQueryGenerationManager.GenerateUpdateQuery<T>(result.Edited[i].sourceContract, keyColumns, excludedColumns, result.Edited[i].editedProperties));
+                if (i != 0 && i % BatchSize == 0)
+                    query.AppendLine(batchStatement);
+            }
+
             if (result.Edited.Count > 0 && result.Edited.Count % BatchSize != 0) query.AppendLine(batchStatement);
 
             return query.ToString();
         }
 
+        /// <summary>
+        /// Generates SQL queries for synchronizing data based on the differences identified, using the provided
+        /// IQueryGenerator instance for query generation.
+        /// </summary>
+        /// <typeparam name="T">The type of entity that implements IDataContractComparer.</typeparam>
+        /// <param name="result">The result object containing the differences between source and destination data.</param>
+        /// <param name="QueryGeneration">The IQueryGenerator instance for query generation.</param>
+        /// <param name="BatchSize">The size of each batch for SQL statements (default is 20).</param>
+        /// <returns>A string representing the generated SQL queries for synchronization.</returns>
+        public string GetSqlQueryForSyncData<T>(Result<T> result, IQueryGenerator QueryGeneration, int BatchSize = 20) where T : IDataContractComparer
+        {
+            destinationQueryGenerationManager = QueryGeneration;
+
+            return GetSqlQueryForSyncData<T>(result, BatchSize);
+        }
+
+
         #endregion
 
-        #region Private Methods
-        private HashSet<T> GetDataFromDatabase<T>(string tableName, IDatabase connection, IQueryGenerator manager, List<string> columns, PropertyInfo[] ComparableProperties) where T : IDataContractComparer
-        {
-            var query = manager.GenerateSelectQuery<T>(tableName, columns, string.Empty);
+            #region Private Methods
 
-            using (var DBManager = new DatabaseManager<IDatabase>(connection))
+        private static void SwapDatabasesIfNeeded(ref IDatabase source, ref IDatabase destination, Direction direction)
+        {
+            switch (direction)
             {
-                return DBManager.ExecuteQuery<T>(query, tableName).ToHashSet(new KeyEqualityComparer<T>(ComparableProperties));
+                case Direction.SourceToDestination:
+                    break;
+
+                case Direction.DestinationToSource:
+                    IDatabase temp;
+                    temp = source;
+                    source = destination;
+                    destination = temp;
+                    break;
+                default:
+                    throw new NotImplementedException();
             }
         }
 

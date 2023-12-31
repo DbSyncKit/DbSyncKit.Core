@@ -13,12 +13,7 @@
         /// <summary>
         /// Indicates synchronization from destination to source only.
         /// </summary>
-        DestinationToSource,
-
-        /// <summary>
-        /// Indicates bidirectional synchronization between source and destination.
-        /// </summary>
-        BiDirectional
+        DestinationToSource
     }
 
 }
