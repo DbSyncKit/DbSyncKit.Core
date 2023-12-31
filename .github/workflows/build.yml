@@ -24,4 +24,5 @@ jobs:
 
     - name: Build DbSyncKit
       run: |
+        cd DbSyncKit.Core/src
         dotnet build -c Release
