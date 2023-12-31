@@ -1,0 +1,27 @@
+name: Build Check
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_check:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        dotnet-version: [7.0, 8.0]
+
+    steps:
+    - name: Checkout Main Repository
+      uses: actions/checkout@v2
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+
+    - name: Build DbSyncKit
+      run: |
+        dotnet build -c Release

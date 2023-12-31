@@ -1,0 +1,28 @@
+name: Build and Publish NuGet Package
+
+on:
+  release:
+    types:
+      - created
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Main Repository
+      uses: actions/checkout@v2
+      with:
+        repository: 'DbSyncKit/DbSyncKit'  
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: '8.0' 
+
+    - name: Build and Publish DbSyncKit.Core
+      run: |
+        cd DbSyncKit.Core/src
+        dotnet build -c Release
+        dotnet pack -c Release
+        dotnet nuget push bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_DEPLOY }}
