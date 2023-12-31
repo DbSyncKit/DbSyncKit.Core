@@ -11,7 +11,7 @@ jobs:
 
     strategy:
       matrix:
-        dotnet-version: ['7.0', '8.0']
+        dotnet-version: ['net7.0', 'net8.0']
 
     steps:
     - name: Checkout Main Repository
@@ -28,4 +28,4 @@ jobs:
     - name: Build DbSyncKit
       run: |
         cd ./DbSyncKit.Core/src
-        dotnet build -c Release
+        dotnet build -c Release --framework ${{ matrix.dotnet-version }}
