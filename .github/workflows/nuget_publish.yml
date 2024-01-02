@@ -32,4 +32,4 @@ jobs:
         dotnet build -c Release
         dotnet pack -c Release
         dotnet nuget push bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_DEPLOY }}
-        dotnet nuget push bin/Release/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_DEPLOY }}
+        
