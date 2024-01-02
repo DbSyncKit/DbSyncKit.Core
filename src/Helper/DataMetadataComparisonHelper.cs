@@ -23,7 +23,7 @@ namespace DbSyncKit.Core.Helper
         /// <param name="destinationList">The destination set of data contracts.</param>
         /// <param name="keyComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for key comparison.</param>
         /// <returns>A <see cref="Result{T}"/> object containing added, deleted, and edited data contracts, as well as data counts.</returns>
-        public static Result<T> GetDifferences(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyComparer)
+        public static Result<T> GetDifferences(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyComparer, PropertyInfo[] CompariableProperties)
         {
 
             List<T> added = new List<T>();
@@ -52,7 +52,7 @@ namespace DbSyncKit.Core.Helper
                 T? destinationContract;
                 if (destinationKeyDictionary.TryGetValue(GenerateCompositeKey(sourceContract, keyComparer.keyProperties), out destinationContract))
                 {
-                    var (isEdited, updatedProperties) = GetEdited(sourceContract, destinationContract, keyComparer.compariableProperties);
+                    var (isEdited, updatedProperties) = GetEdited(sourceContract, destinationContract, CompariableProperties);
 
                     if (isEdited)
                     {
