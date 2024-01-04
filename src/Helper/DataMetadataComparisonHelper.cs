@@ -88,15 +88,15 @@ namespace DbSyncKit.Core.Helper
         /// - <see cref="ValueTuple{T1,T2}.Item1"/> is a boolean indicating if any properties were edited.
         /// - <see cref="ValueTuple{T1,T2}.Item2"/> is a dictionary of updated properties for the edited entity.
         /// </returns>
-        private static (bool isEdited, Dictionary<string, object> updatedProperties) GetEdited(T source, T destination, PropertyInfo[] compariableProperties)
+        private static (bool isEdited, Dictionary<string, object>? updatedProperties) GetEdited(T source, T destination, PropertyInfo[] compariableProperties)
         {
-            Dictionary<string, object> updatedProperties = new();
-            bool isEdited = false;
             if (source.Equals(destination))
             {
-                return (isEdited, updatedProperties);
+                return (false, null);
             }
 
+            Dictionary<string, object> updatedProperties = new();
+            bool isEdited = false;
             foreach (PropertyInfo prop in compariableProperties)
             {
                 object sourceValue = prop.GetValue(source)!;
