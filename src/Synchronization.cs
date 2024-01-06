@@ -141,6 +141,7 @@ namespace DbSyncKit.Core
         /// <param name="sourceList">The HashSet containing data from the source.</param>
         /// <param name="destinationList">The HashSet containing data from the destination.</param>
         /// <param name="keyEqualityComparer">An instance of <see cref="PropertyEqualityComparer{T}"/> used for key comparison.</param>
+        /// <param name="ComparableProperties">An array of PropertyInfo objects representing properties used for comparison.</param>
         /// <returns>A <see cref="Result{T}"/> containing the differences between the source and destination data.</returns>
         public Result<T> GetDifferences<T>(HashSet<T> sourceList, HashSet<T> destinationList, Comparer.PropertyEqualityComparer<T> keyEqualityComparer, PropertyInfo[] ComparableProperties) where T : IDataContractComparer
         {

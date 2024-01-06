@@ -17,12 +17,13 @@ namespace DbSyncKit.Core.Helper
         #region Public Methods
 
         /// <summary>
-        /// Compares metadata and data differences between two sets of data contracts.
+        /// Compares two sets of data entities and identifies the added, deleted, and edited entries.
         /// </summary>
-        /// <param name="sourceList">The source set of data contracts.</param>
-        /// <param name="destinationList">The destination set of data contracts.</param>
-        /// <param name="keyComparer">An instance of <see cref="PropertyEqualityComparer{T}"/> used for key comparison.</param>
-        /// <returns>A <see cref="Result{T}"/> object containing added, deleted, and edited data contracts, as well as data counts.</returns>
+        /// <param name="sourceList">The source set of data entities.</param>
+        /// <param name="destinationList">The destination set of data entities.</param>
+        /// <param name="keyComparer">An equality comparer for identifying key properties.</param>
+        /// <param name="CompariableProperties">An array of PropertyInfo objects representing properties used for comparison.</param>
+        /// <returns>A Result object containing the added, deleted, and edited entries.</returns>
         public static Result<T> GetDifferences(HashSet<T> sourceList, HashSet<T> destinationList, PropertyEqualityComparer<T> keyComparer, PropertyInfo[] CompariableProperties)
         {
 
@@ -57,7 +58,7 @@ namespace DbSyncKit.Core.Helper
 
                     if (isEdited)
                     {
-                        edited.Add((sourceContract, updatedProperties));
+                        edited.Add((sourceContract, updatedProperties)!);
                     }
                 }
             });
