@@ -21,14 +21,15 @@ namespace DbSyncKit.Core.Helper
         /// </summary>
         /// <param name="sourceList">The source set of data contracts.</param>
         /// <param name="destinationList">The destination set of data contracts.</param>
-        /// <param name="keyComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for key comparison.</param>
+        /// <param name="keyComparer">An instance of <see cref="PropertyEqualityComparer{T}"/> used for key comparison.</param>
         /// <returns>A <see cref="Result{T}"/> object containing added, deleted, and edited data contracts, as well as data counts.</returns>
-        public static Result<T> GetDifferences(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyComparer, PropertyInfo[] CompariableProperties)
+        public static Result<T> GetDifferences(HashSet<T> sourceList, HashSet<T> destinationList, PropertyEqualityComparer<T> keyComparer, PropertyInfo[] CompariableProperties)
         {
 
             List<T> added = new List<T>();
             List<T> deleted = new List<T>();
             ConcurrentBag<(T edit, Dictionary<string, object> updatedProperties)> edited = new ConcurrentBag<(T, Dictionary<string, object>)>();
+            PropertyEqualityComparer<T> CompariablePropertyComparer = new PropertyEqualityComparer<T>(CompariableProperties);
 
             // Identify added entries
             added.AddRange(sourceList.Except(destinationList, keyComparer));
@@ -39,20 +40,20 @@ namespace DbSyncKit.Core.Helper
             // Identify edited entries
             var sourceKeyDictionary = sourceList
                 .Except(added)
-                .ToDictionary(row => GenerateCompositeKey(row, keyComparer.keyProperties), row => row);
+                .ToDictionary(row => GenerateCompositeKey(row, keyComparer.properties), row => row);
 
             var destinationKeyDictionary = destinationList
                 .Except(deleted)
-                .ToDictionary(row => GenerateCompositeKey(row, keyComparer.keyProperties), row => row);
+                .ToDictionary(row => GenerateCompositeKey(row, keyComparer.properties), row => row);
 
             Parallel.ForEach(sourceKeyDictionary, kvp =>
             {
                 var sourceContract = kvp.Value;
 
                 T? destinationContract;
-                if (destinationKeyDictionary.TryGetValue(GenerateCompositeKey(sourceContract, keyComparer.keyProperties), out destinationContract))
+                if (destinationKeyDictionary.TryGetValue(GenerateCompositeKey(sourceContract, keyComparer.properties), out destinationContract))
                 {
-                    var (isEdited, updatedProperties) = GetEdited(sourceContract, destinationContract, CompariableProperties);
+                    var (isEdited, updatedProperties) = GetEdited(sourceContract, destinationContract, CompariablePropertyComparer);
 
                     if (isEdited)
                     {
@@ -77,40 +78,36 @@ namespace DbSyncKit.Core.Helper
         #region Private Methods
 
         /// <summary>
-        /// Compares two entities of type <typeparamref name="T"/> to identify if any properties
-        /// have been edited during synchronization.
+        /// Compares two instances of the data contract and identifies the properties that have been edited.
         /// </summary>
-        /// <param name="source">The original entity before synchronization.</param>
-        /// <param name="destination">The entity in the destination after synchronization.</param>
-        /// <param name="compariableProperties">The properties to be compared for edits.</param>
+        /// <param name="source">The source instance to compare.</param>
+        /// <param name="destination">The destination instance to compare against.</param>
+        /// <param name="comparablePropertyComparer">The comparer used to determine which properties are comparable.</param>
         /// <returns>
-        /// A tuple where:
-        /// - <see cref="ValueTuple{T1,T2}.Item1"/> is a boolean indicating if any properties were edited.
-        /// - <see cref="ValueTuple{T1,T2}.Item2"/> is a dictionary of updated properties for the edited entity.
+        /// A tuple indicating whether the instances are edited and a dictionary containing the names and values of the updated properties.
+        /// If the instances are not edited, returns (false, null).
         /// </returns>
-        private static (bool isEdited, Dictionary<string, object>? updatedProperties) GetEdited(T source, T destination, PropertyInfo[] compariableProperties)
+        private static (bool isEdited, Dictionary<string, object>? updatedProperties) GetEdited(T source, T destination, PropertyEqualityComparer<T> comparablePropertyComparer)
         {
-            if (source.Equals(destination))
+            if(comparablePropertyComparer.Equals(source,destination))
             {
                 return (false, null);
             }
 
             Dictionary<string, object> updatedProperties = new();
-            bool isEdited = false;
-            foreach (PropertyInfo prop in compariableProperties)
+            foreach (PropertyInfo prop in comparablePropertyComparer.properties)
             {
                 object sourceValue = prop.GetValue(source)!;
                 object destinationValue = prop.GetValue(destination)!;
 
                 // Compare values
-                if (!EqualityComparer<object>.Default.Equals(sourceValue, destinationValue))
+                if (!System.Collections.Generic.EqualityComparer<object>.Default.Equals(sourceValue, destinationValue))
                 {
-                    isEdited = true;
                     updatedProperties[prop.Name] = sourceValue;
                 }
             }
 
-            return (isEdited, updatedProperties);
+            return (true, updatedProperties);
         }
 
         /// <summary>

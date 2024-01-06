@@ -67,7 +67,7 @@ namespace DbSyncKit.Core
             List<string> ColumnList = GetAllColumns<T>().Except(excludedProperty).ToList();
             PropertyInfo[] ComparableProperties = GetComparableProperties<T>();
             PropertyInfo[] keyProperties = GetKeyProperties<T>();
-            KeyEqualityComparer<T> keyEqualityComparer = new KeyEqualityComparer<T>(ComparableProperties, keyProperties);
+            PropertyEqualityComparer<T> keyEqualityComparer = new PropertyEqualityComparer<T>(keyProperties);
             HashSet<T> sourceList, destinationList;
 
             #endregion
@@ -89,10 +89,10 @@ namespace DbSyncKit.Core
         /// <param name="destination">The destination database from which to retrieve data.</param>
         /// <param name="tableName">The name of the table for which to retrieve data.</param>
         /// <param name="ColumnList">The list of columns to retrieve from the table.</param>
-        /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for data comparison.</param>
+        /// <param name="keyEqualityComparer">An instance of <see cref="PropertyEqualityComparer{T}"/> used for data comparison.</param>
         /// <param name="sourceList">Output parameter for the retrieved data from the source database.</param>
         /// <param name="destinationList">Output parameter for the retrieved data from the destination database.</param>
-        public void RetrieveDataFromDatabases<T>(IDatabase source, IDatabase destination, string tableName, List<string> ColumnList, KeyEqualityComparer<T> keyEqualityComparer, out HashSet<T> sourceList, out HashSet<T> destinationList) where T : IDataContractComparer
+        public void RetrieveDataFromDatabases<T>(IDatabase source, IDatabase destination, string tableName, List<string> ColumnList, Comparer.PropertyEqualityComparer<T> keyEqualityComparer, out HashSet<T> sourceList, out HashSet<T> destinationList) where T : IDataContractComparer
         {
             var sourceQueryGenerationManager = new QueryGenerationManager(QueryGeneratorFactory.GetQueryGenerator(source.Provider));
             sourceList = GetDataFromDatabase<T>(tableName, source, sourceQueryGenerationManager, ColumnList, keyEqualityComparer);
@@ -120,9 +120,9 @@ namespace DbSyncKit.Core
         /// <param name="connection">The database connection from which to retrieve data.</param>
         /// <param name="manager">The query generation manager to use for generating the select query.</param>
         /// <param name="columns">The list of columns to retrieve from the table.</param>
-        /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for data comparison.</param>
+        /// <param name="keyEqualityComparer">An instance of <see cref="PropertyEqualityComparer{T}"/> used for data comparison.</param>
         /// <returns>A <see cref="HashSet{T}"/> containing the retrieved data.</returns>
-        public HashSet<T> GetDataFromDatabase<T>(string tableName, IDatabase connection, IQueryGenerator manager, List<string> columns, KeyEqualityComparer<T> keyEqualityComparer) where T : IDataContractComparer
+        public HashSet<T> GetDataFromDatabase<T>(string tableName, IDatabase connection, IQueryGenerator manager, List<string> columns, Comparer.PropertyEqualityComparer<T> keyEqualityComparer) where T : IDataContractComparer
         {
             var query = manager.GenerateSelectQuery<T>(tableName, columns, string.Empty);
 
@@ -140,9 +140,9 @@ namespace DbSyncKit.Core
         /// <typeparam name="T">The type of objects being compared. Must implement <see cref="IDataContractComparer"/>.</typeparam>
         /// <param name="sourceList">The HashSet containing data from the source.</param>
         /// <param name="destinationList">The HashSet containing data from the destination.</param>
-        /// <param name="keyEqualityComparer">An instance of <see cref="KeyEqualityComparer{T}"/> used for key comparison.</param>
+        /// <param name="keyEqualityComparer">An instance of <see cref="PropertyEqualityComparer{T}"/> used for key comparison.</param>
         /// <returns>A <see cref="Result{T}"/> containing the differences between the source and destination data.</returns>
-        public Result<T> GetDifferences<T>(HashSet<T> sourceList, HashSet<T> destinationList, KeyEqualityComparer<T> keyEqualityComparer, PropertyInfo[] ComparableProperties) where T : IDataContractComparer
+        public Result<T> GetDifferences<T>(HashSet<T> sourceList, HashSet<T> destinationList, Comparer.PropertyEqualityComparer<T> keyEqualityComparer, PropertyInfo[] ComparableProperties) where T : IDataContractComparer
         {
             return DataMetadataComparisonHelper<T>.GetDifferences(sourceList, destinationList, keyEqualityComparer, ComparableProperties);
         }
