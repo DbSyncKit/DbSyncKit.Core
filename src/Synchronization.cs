@@ -57,7 +57,7 @@ namespace DbSyncKit.Core
         /// </remarks>
         public Synchronization()
         {
-            ContractFetcher = new DataContractFetcher();
+            ContractFetcher = new DataContractFetcher(new QueryGeneratorFactory());
             QueryBuilder = new QueryBuilder();
             MismatchIdentifier = new DataContractMismatchIdentifier();
         }

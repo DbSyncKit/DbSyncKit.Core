@@ -8,8 +8,16 @@ namespace DbSyncKit.Core.Fetcher
     /// <summary>
     /// Utility class for fetching data from a database using data contracts.
     /// </summary>
+    /// <remarks>
     public class DataContractFetcher
     {
+        #region Properties
+
+        /// <summary>
+        /// Gets the query generator factory instance used for creating query generators.
+        /// </summary>
+        private readonly QueryGeneratorFactory Factory;
+
         /// <summary>
         /// Gets or sets the QueryGenerationManager instance for generating queries for the destination database.
         /// </summary>
@@ -19,6 +27,22 @@ namespace DbSyncKit.Core.Fetcher
         /// </remarks>
         public IQueryGenerator? DestinationQueryGenerationManager { get; private set; }
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DataContractFetcher"/> class with a custom query generator factory.
+        /// </summary>
+        /// <param name="factory">The custom query generator factory instance.</param>
+        public DataContractFetcher(QueryGeneratorFactory factory)
+        {
+            Factory = factory;
+        }
+
+        #endregion
+
+        #region Methods
 
         /// <summary>
         /// Retrieves data from source and destination databases for a specified table and column list, using a specified data contract type.
@@ -44,13 +68,13 @@ namespace DbSyncKit.Core.Fetcher
             out HashSet<T> sourceList, 
             out HashSet<T> destinationList) where T : IDataContract
         {
-            var sourceQueryGenerationManager = new QueryGenerationManager(QueryGeneratorFactory.GetQueryGenerator(source.Provider));
+            var sourceQueryGenerationManager = new QueryGenerationManager(Factory.GetQueryGenerator(source.Provider));
             sourceList = GetDataFromDatabase<T>(tableName, source, sourceQueryGenerationManager, ColumnList, ComparablePropertyEqualityComparer);
 
             if (source.Provider != destination.Provider)
             {
                 sourceQueryGenerationManager.Dispose();
-                DestinationQueryGenerationManager = new QueryGenerationManager(QueryGeneratorFactory.GetQueryGenerator(destination.Provider));
+                DestinationQueryGenerationManager = new QueryGenerationManager(Factory.GetQueryGenerator(destination.Provider));
             }
             else
             {
@@ -88,5 +112,7 @@ namespace DbSyncKit.Core.Fetcher
             using var DBManager = new DatabaseManager<IDatabase>(connection);
                 return DBManager.ExecuteQuery<T>(query, tableName).ToHashSet(ComparablePropertyEqualityComparer);
         }
+
+        #endregion
     }
 }

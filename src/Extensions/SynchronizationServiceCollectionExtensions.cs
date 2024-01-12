@@ -1,5 +1,6 @@
 ﻿using DbSyncKit.Core.Fetcher;
 using DbSyncKit.Core.SqlBuilder;
+using DbSyncKit.DB.Factory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace DbSyncKit.Core.Extensions
@@ -25,10 +26,11 @@ namespace DbSyncKit.Core.Extensions
         /// </remarks>
         public static void AddSynchronizationServices(this IServiceCollection services)
         {
-            // Register DataContractFetcher, QueryBuilder, and Synchronization as singletons
-            services.AddSingleton<DataContractFetcher>();
-            services.AddSingleton<QueryBuilder>();
-            services.AddSingleton<Synchronization>();
+            // Register DataContractFetcher, QueryBuilder, QueryGeneratorFactory, and Synchronization
+            services.AddSingleton<QueryGeneratorFactory>();
+            services.AddScoped<DataContractFetcher>();
+            services.AddTransient<QueryBuilder>();
+            services.AddScoped<Synchronization>();
         }
     }
 
