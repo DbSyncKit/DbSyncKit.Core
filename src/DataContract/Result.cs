@@ -1,4 +1,5 @@
 ﻿using DbSyncKit.Core.Enum;
+using DbSyncKit.DB.Interface;
 
 namespace DbSyncKit.Core.DataContract
 {
@@ -6,7 +7,7 @@ namespace DbSyncKit.Core.DataContract
     /// Represents the result of a synchronization operation for a specific data type.
     /// </summary>
     /// <typeparam name="T">The type of data being synchronized.</typeparam>
-    public class Result<T>
+    public class Result<T> where T : IDataContract
     {
         /// <summary>
         /// Gets or sets the list of entities that were added during synchronization.
@@ -26,14 +27,32 @@ namespace DbSyncKit.Core.DataContract
 
         /// <summary>
         /// Gets or sets the list of entities that were edited during synchronization,
-        /// along with a dictionary of updated properties for each edited entity.
+        /// along with an array of updated properties for each edited entity.
         /// </summary>
         /// <remarks>
-        /// The list contains tuples where:
-        /// <para>- <c>sourceContract</c> is the original entity before synchronization.</para>
-        /// <para>- <c>editedProperties</c> is a dictionary of updated properties for the edited entity.</para>
+        /// The <see cref="EditedDetailed"/> property contains a list of tuples where:
+        /// <list type="bullet">
+        ///     <item>
+        ///         <description><c>sourceContract</c> is the original entity before synchronization.</description>
+        ///     </item>
+        ///     <item>
+        ///         <description><c>editedProperties</c> is an array of updated properties for the edited entity.</description>
+        ///     </item>
+        /// </list>
         /// </remarks>
-        public List<(T sourceContract, Dictionary<string, object> editedProperties)> Edited { get; set; } = new();
+        public List<(T sourceContract, (string propName, object propValue)[] editedProperties)> EditedDetailed { get; set; } = new();
+
+
+        /// <summary>
+        /// Gets or sets the list of entities that were edited during synchronization.
+        /// </summary>
+        /// <remarks>
+        /// The <see cref="Edited"/> property contains a list of entities that were edited during synchronization.
+        /// Unlike <see cref="EditedDetailed"/>, it does not provide specific information about updated properties.
+        /// </remarks>
+
+        public List<T> Edited { get; set; } = new();
+
 
 
         /// <summary>
