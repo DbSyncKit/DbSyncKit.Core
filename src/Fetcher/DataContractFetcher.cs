@@ -8,7 +8,6 @@ namespace DbSyncKit.Core.Fetcher
     /// <summary>
     /// Utility class for fetching data from a database using data contracts.
     /// </summary>
-    /// <remarks>
     public class DataContractFetcher
     {
         #region Properties
