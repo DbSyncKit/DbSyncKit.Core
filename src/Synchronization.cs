@@ -95,7 +95,7 @@ namespace DbSyncKit.Core
         /// <param name="destination">The destination database.</param>
         /// <param name="direction">Represents Which Direction to compare db</param>
         /// <returns>A result object containing the differences between source and destination data.</returns>
-        public Result<T> SyncData<T>(IDatabase source, IDatabase destination, Direction direction = Direction.SourceToDestination) where T : IDataContract
+        public Result<T> SyncData<T>(IDatabase source, IDatabase destination, Direction direction = Direction.SourceToDestination)
         {
             #region Properties
             string tableName = GetTableName<T>();

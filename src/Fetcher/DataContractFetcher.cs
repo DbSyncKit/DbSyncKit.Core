@@ -46,7 +46,6 @@ namespace DbSyncKit.Core.Fetcher
         /// <summary>
         /// Retrieves data from source and destination databases for a specified table and column list, using a specified data contract type.
         /// </summary>
-        /// <typeparam name="T">The type of data entities implementing the <seealso cref="IDataContract"/> interface.</typeparam>
         /// <param name="source">The source database.</param>
         /// <param name="destination">The destination database.</param>
         /// <param name="tableName">The name of the table from which to retrieve data.</param>
@@ -65,7 +64,7 @@ namespace DbSyncKit.Core.Fetcher
             List<string> ColumnList, 
             PropertyEqualityComparer<T> ComparablePropertyEqualityComparer, 
             out HashSet<T> sourceList, 
-            out HashSet<T> destinationList) where T : IDataContract
+            out HashSet<T> destinationList)
         {
             var sourceQueryGenerationManager = new QueryGenerationManager(Factory.GetQueryGenerator(source.Provider));
             sourceList = GetDataFromDatabase<T>(tableName, source, sourceQueryGenerationManager, ColumnList, ComparablePropertyEqualityComparer);
@@ -86,7 +85,6 @@ namespace DbSyncKit.Core.Fetcher
         /// <summary>
         /// Retrieves data from a database for a specified table, columns, and data contract type.
         /// </summary>
-        /// <typeparam name="T">The type of data entities implementing the <seealso cref="IDataContract"/> interface.</typeparam>
         /// <param name="tableName">The name of the table from which to retrieve data.</param>
         /// <param name="connection">The database connection.</param>
         /// <param name="manager">The query generation manager for creating the SELECT query.</param>
@@ -104,7 +102,7 @@ namespace DbSyncKit.Core.Fetcher
             IDatabase connection,
             IQueryGenerator manager,
             List<string> columns,
-            PropertyEqualityComparer<T> ComparablePropertyEqualityComparer) where T : IDataContract
+            PropertyEqualityComparer<T> ComparablePropertyEqualityComparer)
         {
             var query = manager.GenerateSelectQuery<T>(tableName, columns, string.Empty);
 

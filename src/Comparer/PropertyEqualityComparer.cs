@@ -6,8 +6,7 @@ namespace DbSyncKit.Core.Comparer
     /// <summary>
     /// Compares instances of data contracts based on specified properties, which can be either key or comparable properties.
     /// </summary>
-    /// <typeparam name="T">Type of the data contract implementing <see cref="IDataContract"/>.</typeparam>
-    public class PropertyEqualityComparer<T> : IEqualityComparer<T> where T : IDataContract
+    public class PropertyEqualityComparer<T> : IEqualityComparer<T>
     {
         /// <summary>
         /// Gets the array of <see cref="PropertyInfo"/> objects representing properties used for equality comparison.
