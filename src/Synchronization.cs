@@ -90,7 +90,6 @@ namespace DbSyncKit.Core
         /// <summary>
         /// Synchronizes data of a specific type between source and destination databases.
         /// </summary>
-        /// <typeparam name="T">The type of entity that implements IDataContract.</typeparam>
         /// <param name="source">The source database.</param>
         /// <param name="destination">The destination database.</param>
         /// <param name="direction">Represents Which Direction to compare db</param>
