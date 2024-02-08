@@ -90,11 +90,19 @@ namespace DbSyncKit.Core
         /// <summary>
         /// Synchronizes data of a specific type between source and destination databases.
         /// </summary>
+        /// <typeparam name="T">The type of data entities to synchronize.</typeparam>
         /// <param name="source">The source database.</param>
         /// <param name="destination">The destination database.</param>
-        /// <param name="direction">Represents Which Direction to compare db</param>
+        /// <param name="filterDataCallback">A callback function for filtering data before synchronization.</param>
+        /// <param name="direction">Specifies the direction of synchronization. Default is SourceToDestination.</param>
         /// <returns>A result object containing the differences between source and destination data.</returns>
-        public Result<T> SyncData<T>(IDatabase source, IDatabase destination, Direction direction = Direction.SourceToDestination)
+        /// <remarks>
+        /// This method synchronizes data between source and destination databases of a specific type. 
+        /// It retrieves data from both databases, applies optional filtering using the provided callback function,
+        /// and then compares the data to identify differences. The direction of synchronization determines 
+        /// the comparison direction between source and destination databases.
+        /// </remarks>
+        public Result<T> SyncData<T>(IDatabase source, IDatabase destination, FilterCallback<T>? filterDataCallback, Direction direction = Direction.SourceToDestination)
         {
             #region Properties
             string tableName = GetTableName<T>();
@@ -114,7 +122,7 @@ namespace DbSyncKit.Core
 
             SwapDatabasesIfNeeded(ref source, ref destination, direction);
 
-            ContractFetcher.RetrieveDataFromDatabases(source, destination, tableName, ColumnList, ComparablePropertyEqualityComparer, out sourceList, out destinationList);
+            ContractFetcher.RetrieveDataFromDatabases(source, destination, tableName, ColumnList, ComparablePropertyEqualityComparer, filterDataCallback, out sourceList, out destinationList);
 
             return MismatchIdentifier.GetDifferences(sourceList, destinationList, keyEqualityComparer, ComparablePropertyEqualityComparer);
         }
