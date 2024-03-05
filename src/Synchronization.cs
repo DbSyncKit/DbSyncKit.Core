@@ -1,15 +1,13 @@
-﻿using DbSyncKit.Core.Comparer;
-using DbSyncKit.Core.DataContract;
+﻿using DbSyncKit.Core.DataContract;
 using DbSyncKit.Core.Enum;
 using DbSyncKit.Core.Helper;
-using DbSyncKit.DB;
+using DbSyncKit.Core.SqlBuilder;
+using DbSyncKit.DB.Comparer;
 using DbSyncKit.DB.Factory;
 using DbSyncKit.DB.Helper;
 using DbSyncKit.DB.Interface;
+using DbSyncKit.DB.Fetcher;
 using System.Reflection;
-using System.Text;
-using DbSyncKit.Core.Fetcher;
-using DbSyncKit.Core.SqlBuilder;
 
 namespace DbSyncKit.Core
 {

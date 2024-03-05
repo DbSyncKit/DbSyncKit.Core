@@ -1,6 +1,6 @@
-﻿using DbSyncKit.Core.Comparer;
-using DbSyncKit.Core.DataContract;
+﻿using DbSyncKit.Core.DataContract;
 using DbSyncKit.Core.Enum;
+using DbSyncKit.DB.Comparer;
 using DbSyncKit.DB.Interface;
 using System.Reflection;
 
