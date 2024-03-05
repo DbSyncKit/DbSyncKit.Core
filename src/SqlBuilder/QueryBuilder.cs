@@ -1,11 +1,7 @@
 ﻿using DbSyncKit.Core.DataContract;
 using DbSyncKit.DB.Helper;
-using DbSyncKit.DB.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using DbSyncKit.Templates.Interface;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DbSyncKit.Core.SqlBuilder
 {
@@ -21,7 +17,6 @@ namespace DbSyncKit.Core.SqlBuilder
         /// <summary>
         /// Generates SQL queries for synchronizing data based on the provided <seealso cref="Result{T}"/> object.
         /// </summary>
-        /// <typeparam name="T">The type of data entities implementing the <seealso cref="IDataContract"/> interface.</typeparam>
         /// <param name="result">The <seealso cref="Result{T}"/> object containing added, deleted, and edited entries.</param>
         /// <param name="QueryGeneratorManager">The <seealso cref="IQueryGenerator"/> instance used for generating SQL queries.</param>
         /// <param name="BatchSize">The size of query batches. Default is 20.</param>
@@ -34,7 +29,7 @@ namespace DbSyncKit.Core.SqlBuilder
         /// It uses the specified <seealso cref="IQueryGenerator"/> instance to generate SQL statements.
         /// The queries are separated into batches using the specified batch size.
         /// </remarks>
-        public string GetSqlQueryForSyncData<T>(Result<T> result, IQueryGenerator QueryGeneratorManager, int BatchSize = 20) where T : IDataContract
+        public string GetSqlQueryForSyncData<T>(Result<T> result, IQueryGenerator QueryGeneratorManager, int BatchSize = 20)
         {
             if (QueryGeneratorManager == null)
             {

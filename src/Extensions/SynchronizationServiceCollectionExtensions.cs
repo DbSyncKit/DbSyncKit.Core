@@ -1,5 +1,5 @@
-﻿using DbSyncKit.Core.Fetcher;
-using DbSyncKit.Core.SqlBuilder;
+﻿using DbSyncKit.Core.SqlBuilder;
+using DbSyncKit.DB.Fetcher;
 using DbSyncKit.DB.Factory;
 using Microsoft.Extensions.DependencyInjection;
 

@@ -7,7 +7,7 @@ namespace DbSyncKit.Core.DataContract
     /// Represents the result of a synchronization operation for a specific data type.
     /// </summary>
     /// <typeparam name="T">The type of data being synchronized.</typeparam>
-    public class Result<T> where T : IDataContract
+    public class Result<T>
     {
         /// <summary>
         /// Gets or sets the list of entities that were added during synchronization.

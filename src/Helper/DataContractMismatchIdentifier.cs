@@ -1,6 +1,6 @@
-﻿using DbSyncKit.Core.Comparer;
-using DbSyncKit.Core.DataContract;
+﻿using DbSyncKit.Core.DataContract;
 using DbSyncKit.Core.Enum;
+using DbSyncKit.DB.Comparer;
 using DbSyncKit.DB.Interface;
 using System.Reflection;
 
@@ -16,7 +16,6 @@ namespace DbSyncKit.Core.Helper
         /// <summary>
         /// Compares two sets of data entities and identifies the added, deleted, and edited entries.
         /// </summary>
-        /// <typeparam name="T">The type of data entities implementing the <seealso cref="IDataContract"/> interface.</typeparam>
         /// <param name="sourceList">The source set of data entities.</param>
         /// <param name="destinationList">The destination set of data entities.</param>
         /// <param name="keyComparer">An equality comparer for identifying key properties.</param>
@@ -32,7 +31,7 @@ namespace DbSyncKit.Core.Helper
             HashSet<T> destinationList,
             PropertyEqualityComparer<T> keyComparer,
             PropertyEqualityComparer<T> CompariablePropertyComparer,
-            bool DetailedComparison = true) where T : IDataContract
+            bool DetailedComparison = true)
         {
             var result = new Result<T>();
 
@@ -67,7 +66,6 @@ namespace DbSyncKit.Core.Helper
         /// <summary>
         /// Determines the overall change type based on the presence of added, edited, and deleted entities in the synchronization <seealso cref="Result{T}"/>.
         /// </summary>
-        /// <typeparam name="T">The type of data entities implementing the <seealso cref="IDataContract"/> interface.</typeparam>
         /// <param name="result">The synchronization <seealso cref="Result{T}"/> containing information about added, edited, and deleted entities.</param>
         /// <param name="DetailedComparison">Specifies whether to consider detailed property changes for edited entities. Default is true.</param>
         /// <returns>
@@ -96,7 +94,7 @@ namespace DbSyncKit.Core.Helper
         ///     </item>
         /// </list>
         /// </returns>
-        public ChangeType DetermineChangeType<T>(Result<T> result, bool DetailedComparison) where T : IDataContract
+        public ChangeType DetermineChangeType<T>(Result<T> result, bool DetailedComparison)
         {
             // Tuple representing combinations of hasAdded, hasEdited, and hasDeleted
             (bool, bool, bool) key;
@@ -146,7 +144,6 @@ namespace DbSyncKit.Core.Helper
         /// <summary>
         /// Identifies edited entries between two sets of data entities by comparing properties.
         /// </summary>
-        /// <typeparam name="T">The type of data entities implementing the IDataContract interface.</typeparam>
         /// <param name="Added">A set of data entities added to the destination set.</param>
         /// <param name="Removed">A set of data entities removed from the destination set.</param>
         /// <param name="keyComparer">An equality comparer for identifying key properties.</param>
@@ -159,7 +156,7 @@ namespace DbSyncKit.Core.Helper
             HashSet<T> Added,
             HashSet<T> Removed,
             PropertyEqualityComparer<T> keyComparer,
-            PropertyEqualityComparer<T> CompariablePropertyComparer) where T : IDataContract
+            PropertyEqualityComparer<T> CompariablePropertyComparer)
         {
             List<(T edit, (string propName, object propValue)[] updatedProperties)> edited = new();
 
@@ -192,7 +189,7 @@ namespace DbSyncKit.Core.Helper
         /// <param name="dataContract">The entity for which the composite key is generated.</param>
         /// <param name="keyProperties">The properties used to create the composite key.</param>
         /// <returns>A string representing the composite key.</returns>
-        private string GenerateCompositeKey<T>(T dataContract, PropertyInfo[] keyProperties) where T : IDataContract
+        private string GenerateCompositeKey<T>(T dataContract, PropertyInfo[] keyProperties)
         {
             var values = new string[keyProperties.Length];
 
