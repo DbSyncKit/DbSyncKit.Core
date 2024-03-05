@@ -1,11 +1,7 @@
 ﻿using DbSyncKit.Core.DataContract;
 using DbSyncKit.DB.Helper;
-using DbSyncKit.DB.Interface;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using DbSyncKit.Templates.Interface;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DbSyncKit.Core.SqlBuilder
 {
