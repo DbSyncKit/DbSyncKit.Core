@@ -13,7 +13,7 @@ DbSyncKit is a powerful library for efficient and fast data synchronization oper
 To get started with DbSyncKit, follow these steps:
 
 1. **Installation:** Install the necessary DbSyncKit packages for your database provider. Refer to the [Packages Documentation](https://dbsynckit.rohit-mahajan.in/packages/) for details.
-2. **Configuration:** Configure DbSyncKit using Dependency Injection or manual instance creation. Refer to the [Configuration Guide](https://dbsynckit.rohit-mahajan.in/configuration) for setup instructions.
+2. **Configuration:** Configure DbSyncKit using Dependency Injection or manual instance creation. Refer to the [Configuration Guide](https://dbsynckit.rohit-mahajan.in/guide/configuration/) for setup instructions.
 3. **Usage:** Perform basic synchronization using DbSyncKit. Explore the [Usage Guide](https://dbsynckit.rohit-mahajan.in/guide/usage/) for detailed instructions.
 4. **Database Providers:** Choose and install the appropriate database provider package. Refer to the [Database Providers](https://dbsynckit.rohit-mahajan.in/providers) documentation for a list of supported providers.
 
@@ -35,4 +35,4 @@ DbSyncKit is released under the [MIT License](https://opensource.org/licenses/MI
 
 ---
 
-**Note:** DbSyncKit is actively developed, and future updates may include support for additional database providers. For the latest information on upcoming features, check the [Future Additions](https://dbsynckit.rohit-mahajan.in/packages/future-additions) section.
+**Note:** DbSyncKit is actively developed, and future updates may include support for additional database providers. For the latest information on upcoming features, check the [Future Additions](https://dbsynckit.rohit-mahajan.in/planned) section.
